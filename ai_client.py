@@ -6,13 +6,13 @@ load_dotenv()
 
 client = OpenAI(
     api_key=os.getenv("DEEPSEEK_API_KEY"),
-    base_url=os.getenv("DEEPSEEK_BASE_URL", "https://api.deepseek.com/v1")
+    base_url="https://api.deepseek.com"
 )
 
 def generate_section(prompt, max_tokens=2000):
     try:
         response = client.chat.completions.create(
-            model="deepseek-v4-flash",
+            model="deepseek-chat",
             messages=[
                 {
                     "role": "system",
