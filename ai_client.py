@@ -6,7 +6,7 @@ load_dotenv()
 
 client = OpenAI(
     api_key=os.getenv("DEEPSEEK_API_KEY"),
-    base_url=os.getenv("DEEPSEEK_BASE_URL", "https://api.deepseek.com/anthropic/v1")
+    base_url=os.getenv("DEEPSEEK_BASE_URL", "https://api.deepseek.com/v1")
 )
 
 def generate_section(prompt, max_tokens=2000):
