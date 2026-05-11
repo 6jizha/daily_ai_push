@@ -1,0 +1,54 @@
+import os
+from dotenv import load_dotenv
+from openai import OpenAI
+
+load_dotenv()
+
+client = OpenAI(
+    api_key=os.getenv("DEEPSEEK_API_KEY"),
+    base_url=os.getenv("DEEPSEEK_BASE_URL", "https://api.deepseek.com/anthropic/v1")
+)
+
+def generate_section(prompt, max_tokens=2000):
+    try:
+        response = client.chat.completions.create(
+            model="deepseek-v4-flash",
+            messages=[
+                {
+                    "role": "system",
+                    "content": "你是AI技术领域的资深导师，擅长用通俗易懂的语言讲解复杂概念。请以Markdown格式回复，包含标题、要点和总结。"
+                },
+                {"role": "user", "content": prompt}
+            ],
+            max_tokens=max_tokens,
+            temperature=0.7,
+        )
+        return response.choices[0].message.content.strip()
+    except Exception as e:
+        return f"⚠️ 生成失败: {e}"
+
+def generate_frontier():
+    prompt = """请讲解一个AI领域最前沿的技术或趋势（2026年最新），
+用🔷标记标题，300字以内，包含核心突破、为何重要两个部分。"""
+    return generate_section(prompt, max_tokens=800)
+
+def generate_basics():
+    prompt = """请讲解一个AI最基础的概念或知识点（如Transformer、梯度下降等），
+用🔷标记标题，300字以内，包含核心原理、为何重要两个部分。
+今天要讲的概念请从以下列表中随机选一个你还没讲过的：
+- 损失函数 (Loss Function)
+- 反向传播 (Backpropagation)
+- 激活函数 (Activation Function)
+- 过拟合与正则化 (Overfitting & Regularization)
+- 卷积神经网络 CNN
+- 循环神经网络 RNN
+- 词嵌入 (Word Embedding)
+- 强化学习 (Reinforcement Learning)
+- 生成对抗网络 GAN
+- 迁移学习 (Transfer Learning)"""
+    return generate_section(prompt, max_tokens=800)
+
+def generate_job():
+    prompt = """请介绍一个与AI相关的职业（从技术研发、应用落地、治理合规中随机选一个），
+用🟡标记标题，包含岗位画像、技能需求、薪资前景、给新人的建议四部分，300字以内。"""
+    return generate_section(prompt, max_tokens=800)
