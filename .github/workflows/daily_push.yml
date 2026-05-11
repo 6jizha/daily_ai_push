@@ -1,0 +1,27 @@
+name: 每天发邮件
+
+on:
+  schedule:
+    - cron: '0 0 * * *'   # 北京时间早上8点
+  workflow_dispatch:       # 可以手动测试
+
+jobs:
+  send:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: 安装依赖
+        run: pip install requests beautifulsoup4 resend openai python-dotenv schedule lxml pytz
+
+      - name: 运行
+        env:
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+          DEEPSEEK_BASE_URL: https://api.deepseek.com/anthropic/v1
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          TARGET_EMAIL: ${{ secrets.TARGET_EMAIL }}
+        run: python main.py --now
