@@ -2,8 +2,6 @@ import os
 import logging
 from datetime import datetime, timezone, timedelta
 from dotenv import load_dotenv
-import schedule
-import time
 import resend
 
 from ai_client import generate_frontier, generate_basics, generate_job
@@ -121,6 +119,7 @@ if __name__ == "__main__":
         daily_job()
     elif len(sys.argv) > 1 and sys.argv[1] == "--schedule":
         import schedule
+        import time
         schedule.every().day.at("08:00").do(daily_job)
         logger.info("⏰ 定时任务已启动，每天 08:00 执行推送")
         while True:
