@@ -4,8 +4,8 @@ from datetime import datetime, timezone, timedelta
 from dotenv import load_dotenv
 import resend
 
-from ai_client import generate_frontier, generate_basics, generate_job
-from github_trending import fetch_github_trending, format_trending_markdown
+from ai_client import generate_frontier, generate_basics, generate_job, ask_deepseek
+from github_trending import fetch_github_trending
 
 load_dotenv()
 
@@ -88,13 +88,42 @@ def daily_job():
 
     logger.info(f"========== 开始执行每日推送: {date_str} ==========")
 
+    # --- 新 GitHub 热点逻辑：AI 生成简介 ---
+    logger.info("抓取GitHub项目名...")
+    repos = []
     try:
         repos = fetch_github_trending(period="daily", limit=5)
-        trending_md = format_trending_markdown(repos)
         logger.info(f"GitHub热点抓取: {len(repos)} 个项目")
     except Exception as e:
         logger.error(f"GitHub抓取失败: {e}")
+
+    if repos:
+        # 准备给AI的提示词
+        repo_names = ", ".join([r['name'] for r in repos])
+        ai_prompt = (
+            f"以下是今日GitHub热门项目：{repo_names}。"
+            "请为每个项目写一句简短的中文介绍（10个字左右），然后生成Markdown表格，表头为：| 项目 | 简介 | Stars |。"
+            "Stars列直接用我下面提供的真实数据，不要改动。\n"
+        )
+        for r in repos:
+            ai_prompt += f"项目名：{r['name']}，Stars：{r['stars']}\n"
+
+        ai_prompt += "\n请严格按Markdown表格格式输出，不要添加多余内容。"
+
+        try:
+            logger.info("请AI为项目生成简介...")
+            trending_md = ask_deepseek(ai_prompt, max_tokens=600)
+            logger.info("  ✅ GitHub简介生成完成")
+        except Exception as e:
+            logger.error(f"AI生成GitHub简介失败: {e}，使用简单格式")
+            # 备用：简单表格
+            lines = ["| 项目 | 简介 | Stars |", "| :--- | :--- | :--- |"]
+            for r in repos:
+                lines.append(f"| **[{r['name']}]({r['url']})** | 热门开源项目 | {r['stars']} |")
+            trending_md = "\n".join(lines)
+    else:
         trending_md = "今日 GitHub 热点数据暂不可用，请稍后再试。"
+    # --- 结束 ---
 
     logger.info("开始生成AI内容...")
     frontier = generate_frontier()
