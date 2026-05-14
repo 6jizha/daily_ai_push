@@ -3,67 +3,67 @@ import os
 import resend
 from datetime import datetime, timezone, timedelta
 
-DEEPSEEK_KEY = os.environ.get("DEEPSEEK_API_KEY")
-DEEPSEEK_URL = "https://api.deepseek.com/chat/completions"
-RESEND_KEY = os.environ.get("RESEND_API_KEY")
-TARGET = os.environ.get("TARGET_EMAIL")
-BEIJING_TZ = timezone(timedelta(hours=8))
+DEEPSEEK_KEY = os.环境.获取(“DEEPSEEK_API_KEY”)
+DEEPSEEK_URL = “https://api.deepseek.com/chat/completions”
+RESEND_KEY = os.环境.获取(“RESEND_API_KEY”)
+TARGET = os.环境.获取(“目标邮箱”)
+BEIJING_TZ = 时区(timedelta(小时=8))
 
-def ask_ai(prompt, max_tokens=800):
-    if not DEEPSEEK_KEY:
-        return "API key missing"
+定义 询问AI(提示，最大标记数=800):
+    如果 不是深思KEY：
+        返回 "API key missing"
     headers = {
         "Authorization": f"Bearer {DEEPSEEK_KEY}",
         "Content-Type": "application/json"
     }
     data = {
         "model": "deepseek-chat",
-        "messages": [{"role": "user", "content": prompt}],
+        “消息”: {: "用户", "内容": 提示}
         "max_tokens": max_tokens,
-        "temperature": 0.7
+        “温度”: 
     }
-    try:
-        resp = requests.post(DEEPSEEK_URL, headers=headers, json=data, timeout=60)
-        if resp.status_code == 200:
-            return resp.json()["choices"][0]["message"]["content"].strip()
+    尝试:
+        resp = requests.发布(DEEPSEEK_URL, headers=headers, json=data, timeout=60)
+        如果 resp.status_code == 200:
+            返回 resp.json()["choices"][0]["message"]["content"].strip()
         else:
-            return f"API error: {resp.status_code} {resp.text[:200]}"
-    except Exception as e:
-        return f"Network error: {e}"
+返回f"API错误：{resp.status_code} {resp.文本[:200]}"
+异常作为：
+返回f"网络错误：{e}"
 
-def send_email(html_body):
-    if not RESEND_KEY or not TARGET:
+定义 send_email(html_body):
+    如果 不是 RESEND_KEY or 不是 TARGET:
         print("Email config missing")
-        return
-    resend.api_key = RESEND_KEY
-    try:
-        resend.Emails.send({
-            "from": "AI学习速报 <onboarding@resend.dev>",
-            "to": [TARGET],
-            "subject": f"AI每日学习速报 - {datetime.now(BEIJING_TZ).strftime('%Y-%m-%d')}",
-            "html": html_body
+        返回
+重发。api_key= 重发密钥
+    尝试：
+重新发送。电子邮件.发送({
+            “发件人”: “AI学习速报 <onboarding@resend.dev>",
+            "收件人": [目标],
+            “主题”: f“AI每日学习速报 -{datetime.now(BEIJING_TZ).strftime('%Y-%m-%d')}",
+            “html”: html正文
         })
-        print("Email sent!")
+        print(“邮件已发送！”)
     except Exception as e:
-        print(f"Email failed: {e}")
+        print(f"邮件发送失败：{e}")
 
-today = datetime.now(BEIJING_TZ)
+北京时区)
 date_str = today.strftime("%Y年%m月%d日 %A")
 print(f"开始 {date_str} 推送...")
 
 # 增加了随机性和避免重复的指令
-frontier = ask_ai("今天是新的一天。请讲解一个与昨天不同的、AI领域最前沿的技术或趋势（2026年），讲一些新鲜的点，用'今日前沿'作标题，300字以内。")
+前沿 =ask_ai("今天是新的一天。请讲解一个与昨天不同的、AI领域最前沿的技术或趋势（2026年），讲一些新鲜的点，用'今日前沿'作标题，300字以内。")
 basics = ask_ai("今日基础概念课堂。请从'过拟合'、'梯度下降'、'卷积神经网络'、'激活函数'、'反向传播'中，随机挑选一个你还没讲过的概念进行讲解。要求：用'今日基础'作标题，300字以内，确保每次回答都是新的。")
-job = ask_ai("今日AI岗位推荐。请介绍一个与昨天不同的、热门的AI相关职业（比如：AI产品经理、机器学习运维(MLOps)工程师、AI伦理合规师等），轮换着讲。用'今日AI岗位'作标题，包含岗位画像、技能、薪资、建议，300字以内。")
+职位 =ask_ai("今日AI岗位推荐。请介绍一个与昨天不同的、热门的AI相关职业（比如：AI产品经理、机器学习运维(MLOps)工程师、AI伦理合规师等），轮换着讲。用'今日AI岗位'作标题，包含岗位画像、技能、薪资、建议，300字以内。")
 
 html = f"""
 <html>
 <body style="font-family: sans-serif; max-width: 700px; margin: 0 auto; padding: 20px; background: #f5f7fa;">
 <div style="background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 30px; border-radius: 12px 12px 0 0; text-align: center;">
-<h1>📬 AI 每日学习速报</h1><p style="margin: 8px 0 0;">{date_str}</p>
+<h1>AI每日学习速报</h1><p style="margin: 8px 0 0;">{date_str}</p>
 </div>
 <div style="background: white; padding: 25px; border-radius: 0 0 12px 12px;">
-<h2>🔷 今日前沿</h2><p>{frontier}</p>
+
 <h2>🔷 今日基础</h2><p>{basics}</p>
 <h2>🟡 今日AI岗位</h2><p>{job}</p>
 <hr><p style="color: #a0aec0; font-size: 12px; text-align: center;">📮 由 AI 自动生成并推送 | 内容仅供参考学习</p>
@@ -74,3 +74,5 @@ html = f"""
 
 send_email(html)
 print("流程结束")
+
+    
